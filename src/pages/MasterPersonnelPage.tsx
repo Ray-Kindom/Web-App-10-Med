@@ -1,17 +1,8 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { useApp } from '../context/AppContext';
 import { PersonnelTable } from '../components/personnel/PersonnelTable';
-import { Personnel, Battery } from '../types';
-import {
-  Users,
-  UserPlus,
-  Download,
-  Filter,
-  Shield,
-  Layers,
-  Sparkles,
-  Printer,
-} from 'lucide-react';
+import { Personnel } from '../types';
+import { UserPlus } from 'lucide-react';
 
 interface MasterPersonnelPageProps {
   onViewDossier: (person: Personnel) => void;
@@ -22,36 +13,16 @@ interface MasterPersonnelPageProps {
 export const MasterPersonnelPage: React.FC<MasterPersonnelPageProps> = ({
   onViewDossier,
   onOpenAddModal,
-  onOpenPrintModal,
 }) => {
-  const { personnelList, currentUser, showNotification } = useApp();
+  const { personnelList, currentUser } = useApp();
 
-  const handleExportCSV = () => {
-    const headers = ['Snk No', 'Rank', 'Trade', 'Name', 'Battery', 'Status', 'Details', 'Blood Group', 'Medical Cat'];
-    const rows = personnelList.map((p) => [
-      p.snkNo,
-      p.rk,
-      p.trade,
-      `"${p.name}"`,
-      p.battery,
-      p.status,
-      `"${p.statusDetails || ''}"`,
-      p.bloodGroup || 'O+',
-      p.medicalCategory || 'AYE',
-    ]);
+  // Rank Category Counts with strict short terminology: Offr, JCO, NCO, Snk
+  const officerCount = personnelList.filter((p) => ['Lt Col', 'Maj', 'Capt', 'Lt'].includes(p.rk)).length;
+  const jcoCount = personnelList.filter((p) => ['SWO', 'WO'].includes(p.rk)).length;
+  const ncoCount = personnelList.filter((p) => ['Sgt', 'Cpl', 'Lcpl'].includes(p.rk)).length;
+  const soldierCount = personnelList.filter((p) => ['Snk', 'Gnr'].includes(p.rk)).length;
 
-    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
-    const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `10_Med_Regt_Nominal_Roll_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    showNotification('Master Nominal Roll exported to CSV.');
-  };
-
-  // Trade Counts
+  // Trade Counts (Short forms)
   const taCount = personnelList.filter((p) => p.trade === 'TA').length;
   const ocuCount = personnelList.filter((p) => p.trade === 'OCU').length;
   const dmtCount = personnelList.filter((p) => p.trade === 'DMT').length;
@@ -60,7 +31,7 @@ export const MasterPersonnelPage: React.FC<MasterPersonnelPageProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header Banner */}
+      {/* Header Banner without redundant buttons */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-5 rounded-2xl bg-gradient-to-r from-slate-950 via-slate-900 to-slate-950 border border-slate-800 shadow-xl">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
@@ -75,67 +46,92 @@ export const MasterPersonnelPage: React.FC<MasterPersonnelPageProps> = ({
             Master Personnel Database
           </h1>
           <p className="text-xs text-slate-400">
-            Official Bangladesh Army 10 Medium Regiment Artillery personnel roster & specialty trade records.
+            10 Medium Regiment Artillery rank-wise nominal roll & trade specialties.
           </p>
         </div>
 
-        <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
-          <button
-            onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
-          >
-            <Download className="w-3.5 h-3.5 text-blue-400" />
-            <span>Export CSV</span>
-          </button>
-          <button
-            onClick={onOpenPrintModal}
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold border border-slate-700 transition-colors"
-          >
-            <Printer className="w-3.5 h-3.5 text-rose-400" />
-            <span>Print Parade State</span>
-          </button>
-          {currentUser.role === 'RSM' && (
+        {currentUser.role === 'RSM' && (
+          <div className="flex items-center gap-2 self-start sm:self-auto">
             <button
               onClick={onOpenAddModal}
-              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-900/40 transition-colors"
+              className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold shadow-lg shadow-rose-900/40 transition-colors cursor-pointer"
             >
               <UserPlus className="w-4 h-4" />
               <span>Enlist Soldier</span>
             </button>
-          )}
+          </div>
+        )}
+      </div>
+
+      {/* Rank Hierarchy Summary Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="p-3.5 rounded-xl bg-slate-900 border border-rose-500/30 space-y-1">
+          <div className="flex items-center justify-between text-xs font-mono text-rose-300">
+            <span className="font-bold">Offr</span>
+            <span className="text-[10px] bg-rose-500/10 px-1.5 py-0.5 rounded text-rose-400">Lt Col - Lt</span>
+          </div>
+          <div className="text-2xl font-black text-white font-mono">{officerCount}</div>
+          <div className="text-[11px] text-slate-400 font-sans">Command & Fire Control</div>
+        </div>
+
+        <div className="p-3.5 rounded-xl bg-slate-900 border border-amber-500/30 space-y-1">
+          <div className="flex items-center justify-between text-xs font-mono text-amber-300">
+            <span className="font-bold">JCO</span>
+            <span className="text-[10px] bg-amber-500/10 px-1.5 py-0.5 rounded text-amber-400">SWO / WO</span>
+          </div>
+          <div className="text-2xl font-black text-white font-mono">{jcoCount}</div>
+          <div className="text-[11px] text-slate-400 font-sans">RSM, BSM & Technical Chiefs</div>
+        </div>
+
+        <div className="p-3.5 rounded-xl bg-slate-900 border border-blue-500/30 space-y-1">
+          <div className="flex items-center justify-between text-xs font-mono text-blue-300">
+            <span className="font-bold">NCO</span>
+            <span className="text-[10px] bg-blue-500/10 px-1.5 py-0.5 rounded text-blue-400">Sgt - Lcpl</span>
+          </div>
+          <div className="text-2xl font-black text-white font-mono">{ncoCount}</div>
+          <div className="text-[11px] text-slate-400 font-sans">Gun Detachment Commanders</div>
+        </div>
+
+        <div className="p-3.5 rounded-xl bg-slate-900 border border-emerald-500/30 space-y-1">
+          <div className="flex items-center justify-between text-xs font-mono text-emerald-300">
+            <span className="font-bold">Snk</span>
+            <span className="text-[10px] bg-emerald-500/10 px-1.5 py-0.5 rounded text-emerald-400">Snk / Gnr</span>
+          </div>
+          <div className="text-2xl font-black text-white font-mono">{soldierCount}</div>
+          <div className="text-[11px] text-slate-400 font-sans">Gun Numbers & Specialists</div>
         </div>
       </div>
 
-      {/* Trade Quick Counts */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
-        <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <div className="text-[10px] font-bold text-slate-400 font-mono">TA (Technical Asst)</div>
-          <div className="mt-1 text-xl font-bold font-mono text-white">{taCount}</div>
-          <div className="text-[10px] text-blue-400 mt-0.5">Fire Direction / Survey</div>
+      {/* Regimental Trade Specialties Summary Bar */}
+      <div className="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2">
+          <span className="text-slate-400 font-bold uppercase tracking-wider font-mono text-[11px] flex items-center gap-1.5">
+            <span>Artillery Trades:</span>
+          </span>
+          <span className="text-slate-500 text-[11px]">Specialist Wings of 10 Med Regt</span>
         </div>
 
-        <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <div className="text-[10px] font-bold text-slate-400 font-mono">OCU (Operational)</div>
-          <div className="mt-1 text-xl font-bold font-mono text-white">{ocuCount}</div>
-          <div className="text-[10px] text-emerald-400 mt-0.5">Command Post Control</div>
-        </div>
-
-        <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <div className="text-[10px] font-bold text-slate-400 font-mono">DMT (Mech Transport)</div>
-          <div className="mt-1 text-xl font-bold font-mono text-white">{dmtCount}</div>
-          <div className="text-[10px] text-amber-400 mt-0.5">Gun Towing & Drivers</div>
-        </div>
-
-        <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <div className="text-[10px] font-bold text-slate-400 font-mono">Gnr (Gunners)</div>
-          <div className="mt-1 text-xl font-bold font-mono text-white">{gnrCount}</div>
-          <div className="text-[10px] text-purple-400 mt-0.5">Artillery Gun Crews</div>
-        </div>
-
-        <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
-          <div className="text-[10px] font-bold text-slate-400 font-mono">Ck(U) (Cook Unit)</div>
-          <div className="mt-1 text-xl font-bold font-mono text-white">{ckCount}</div>
-          <div className="text-[10px] text-rose-400 mt-0.5">Regimental Cookhouse</div>
+        <div className="flex items-center gap-2 flex-wrap font-mono">
+          <div className="px-2.5 py-1 rounded bg-amber-950/40 border border-amber-500/40 text-amber-300 flex items-center gap-1.5">
+            <span className="font-bold">DMT:</span>
+            <strong className="text-white font-bold">{dmtCount}</strong>
+          </div>
+          <div className="px-2.5 py-1 rounded bg-cyan-950/40 border border-cyan-500/40 text-cyan-300 flex items-center gap-1.5">
+            <span className="font-bold">TA:</span>
+            <strong className="text-white font-bold">{taCount}</strong>
+          </div>
+          <div className="px-2.5 py-1 rounded bg-indigo-950/40 border border-indigo-500/40 text-indigo-300 flex items-center gap-1.5">
+            <span className="font-bold">OCU:</span>
+            <strong className="text-white font-bold">{ocuCount}</strong>
+          </div>
+          <div className="px-2.5 py-1 rounded bg-emerald-950/40 border border-emerald-500/40 text-emerald-300 flex items-center gap-1.5">
+            <span className="font-bold">Gnr:</span>
+            <strong className="text-white font-bold">{gnrCount}</strong>
+          </div>
+          <div className="px-2.5 py-1 rounded bg-rose-950/40 border border-rose-500/40 text-rose-300 flex items-center gap-1.5">
+            <span className="font-bold">Ck(U):</span>
+            <strong className="text-white font-bold">{ckCount}</strong>
+          </div>
         </div>
       </div>
 
@@ -145,7 +141,7 @@ export const MasterPersonnelPage: React.FC<MasterPersonnelPageProps> = ({
         onViewDossier={onViewDossier}
         onOpenAddModal={onOpenAddModal}
         allowStatusEdits={currentUser.role !== 'CO'}
-        title="10 Medium Regiment Artillery — Master Roll"
+        title="Nominal"
       />
     </div>
   );

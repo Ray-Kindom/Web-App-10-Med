@@ -56,11 +56,13 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const rolesList: { role: Role; label: string; bty?: Battery; desc: string }[] = [
-    { role: 'CO', label: 'Commanding Officer (CO)', desc: 'Full Read-Only Executive Oversight' },
-    { role: 'Adjutant', label: 'Adjutant (Adjt)', desc: 'Regimental Roll & Approvals' },
-    { role: 'RSM', label: 'Regimental Sgt Major (RSM)', desc: 'Consolidated Muster & Discipline' },
-    { role: 'Officers', label: 'Battery Officer / BC', bty: 'HQ Bty', desc: 'Battery Personnel Management' },
-    { role: 'BSM', label: 'Battery Sgt Major (BSM)', bty: 'P Bty', desc: 'Battery Roll & Morning Parade' },
+    { role: 'CO', label: 'Commanding Officer (CO)', desc: 'Executive Strategic View' },
+    { role: 'Offr', label: 'Officer (Offr)', desc: 'Regimental Officer Access' },
+    { role: 'RSM', label: 'Regimental Sgt Major (RSM)', desc: 'Consolidated Muster & Enlistment' },
+    { role: 'P BSM', label: 'P Battery Sgt Major (P BSM)', bty: 'P Bty', desc: 'P Battery In-Charge' },
+    { role: 'Q BSM', label: 'Q Battery Sgt Major (Q BSM)', bty: 'Q Bty', desc: 'Q Battery In-Charge' },
+    { role: 'R BSM', label: 'R Battery Sgt Major (R BSM)', bty: 'R Bty', desc: 'R Battery In-Charge' },
+    { role: 'HQ BSM', label: 'HQ Battery Sgt Major (HQ BSM)', bty: 'HQ Bty', desc: 'HQ Battery In-Charge' },
     { role: 'Admin', label: 'System Admin', desc: 'User Roles & System Controls' },
   ];
 

@@ -3,6 +3,7 @@ import { useApp } from '../context/AppContext';
 import { Battery, Personnel } from '../types';
 import { StatCard } from '../components/common/StatCard';
 import { PersonnelTable } from '../components/personnel/PersonnelTable';
+import { ParadeActionControls } from '../components/parade/ParadeActionControls';
 import {
   Building2,
   Users,
@@ -94,11 +95,11 @@ export const BatteryDashboardPage: React.FC<BatteryDashboardPageProps> = ({
   const effectivePresent = presentCount + dutyCount;
   const readinessPct = postedCount > 0 ? Math.round((effectivePresent / postedCount) * 100) : 0;
 
-  const isBsm = currentUser.role === 'BSM';
+  const isBsm = ['P BSM', 'Q BSM', 'R BSM', 'HQ BSM'].includes(currentUser.role);
   const isBsmRestricted = isBsm && currentUser.assignedBattery && currentUser.assignedBattery !== activeBattery;
 
   const handleSubmitMorningRoll = () => {
-    showNotification(`Morning Parade State for ${activeBattery} submitted to RSM & Adjutant.`);
+    showNotification(`Morning Parade State for ${activeBattery} submitted to RSM & Duty Officer.`);
     addAuditLog(
       'Battery State Submitted',
       `Submitted ${activeBattery} state with ${presentCount} present out of ${postedCount}`,
@@ -258,6 +259,9 @@ export const BatteryDashboardPage: React.FC<BatteryDashboardPageProps> = ({
           colorScheme="cyan"
         />
       </div>
+
+      {/* Updt Daily Parade State & Updt Out Of Unit Action Control Boxes */}
+      <ParadeActionControls battery={activeBattery} />
 
       {/* Battery Table */}
       <PersonnelTable

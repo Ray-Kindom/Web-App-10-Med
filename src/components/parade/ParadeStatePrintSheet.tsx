@@ -72,10 +72,10 @@ export const ParadeStatePrintSheet: React.FC<ParadeStatePrintSheetProps> = ({
                   10 MEDIUM REGIMENT ARTILLERY
                 </h1>
                 <div className="text-xs font-bold tracking-widest text-red-700 font-mono">
-                  BORN DESTROYER • সম্মান ও গৌরব
+                  BORN DESTROYER • HONOUR & GLORY
                 </div>
-                <div className="text-xs text-slate-700 font-medium">
-                  ১০ মিডিয়াম রেজিমেন্ট আর্টিলারি
+                <div className="text-xs text-slate-700 font-medium font-mono">
+                  10 Medium Regiment Artillery • Bangladesh Army
                 </div>
               </div>
             </div>

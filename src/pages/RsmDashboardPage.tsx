@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { StatCard } from '../components/common/StatCard';
 import { PersonnelTable } from '../components/personnel/PersonnelTable';
+import { ParadeActionControls } from '../components/parade/ParadeActionControls';
 import { Personnel, DutyAssignment } from '../types';
 import {
   ShieldCheck,
@@ -237,6 +238,9 @@ export const RsmDashboardPage: React.FC<RsmDashboardPageProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Parade State & Out Of Unit Action Controls */}
+      <ParadeActionControls />
 
       {/* Detailed Roll for On-Duty Soldiers */}
       <div className="space-y-3">

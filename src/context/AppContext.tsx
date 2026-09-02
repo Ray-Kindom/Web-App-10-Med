@@ -1,6 +1,19 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { Personnel, UserAccount, Role, Battery, ParadeStatus, DutyAssignment, AuditLogItem, BatteryParadeSummary } from '../types';
+import {
+  Personnel,
+  UserAccount,
+  Role,
+  Battery,
+  ParadeStatus,
+  DutyAssignment,
+  AuditLogItem,
+  BatteryParadeSummary,
+  DailyParadePoint,
+  ParadePointCount,
+  OutOfUnitCategory,
+} from '../types';
 import { INITIAL_PERSONNEL, INITIAL_USERS, INITIAL_DUTY_ROSTER, INITIAL_AUDIT_LOGS } from '../data/initialData';
+import { INITIAL_PARADE_POINTS } from '../data/paradePointsData';
 
 interface AppContextType {
   currentUser: UserAccount;
@@ -39,18 +52,53 @@ interface AppContextType {
   setSelectedBatteryFilter: (bty: Battery | 'All') => void;
   searchQuery: string;
   setSearchQuery: (query: string) => void;
+  customLogo: string | null;
+  setCustomLogo: (logo: string | null) => void;
   notification: string | null;
   showNotification: (msg: string) => void;
+
+  // Daily Parade State Management
+  dailyParadePoints: DailyParadePoint[];
+  updateParadePointCount: (pointId: string, battery: Battery, counts: ParadePointCount) => void;
+  togglePointForBattery: (pointId: string, battery: Battery, enabled: boolean) => void;
+  setRsmPointSuggestion: (pointId: string, suggestion: Partial<ParadePointCount>) => void;
+  addDailyParadePoint: (name: string, enabledBatteries?: Battery[], initialCounts?: ParadePointCount) => void;
+  deleteDailyParadePoint: (pointId: string) => void;
+  toggleDailyParadePointActive: (pointId: string, active: boolean) => void;
+
+  // Out Of Unit Management
+  assignOutOfUnit: (
+    personnelId: string,
+    category: OutOfUnitCategory,
+    details: {
+      location?: string;
+      startDate?: string;
+      endDate?: string;
+      authority?: string;
+      remarks?: string;
+    }
+  ) => void;
+  cancelOutOfUnit: (personnelId: string) => void;
+
+  // Modal triggers
+  dailyParadeModalOpen: boolean;
+  setDailyParadeModalOpen: (open: boolean) => void;
+  outOfUnitModalOpen: boolean;
+  setOutOfUnitModalOpen: (open: boolean) => void;
+  activeOutOfUnitCategory: OutOfUnitCategory;
+  setActiveOutOfUnitCategory: (cat: OutOfUnitCategory) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 const STORAGE_KEYS = {
-  PERSONNEL: '10med_personnel_v1',
+  PERSONNEL: '10med_personnel_v2',
   USER: '10med_currentUser_v1',
   USERS_LIST: '10med_users_v2',
   DUTY: '10med_duty_v1',
   LOGS: '10med_logs_v1',
+  LOGO: '10med_custom_logo_v1',
+  PARADE_POINTS: '10med_parade_points_v1',
 };
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -94,10 +142,37 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     return INITIAL_AUDIT_LOGS;
   });
 
+  const [dailyParadePoints, setDailyParadePoints] = useState<DailyParadePoint[]>(() => {
+    const saved = localStorage.getItem(STORAGE_KEYS.PARADE_POINTS);
+    if (saved) {
+      try { return JSON.parse(saved); } catch (e) { /* fallback */ }
+    }
+    return INITIAL_PARADE_POINTS;
+  });
+
   const [activePage, setActivePage] = useState<string>('main_dashboard');
   const [selectedBatteryFilter, setSelectedBatteryFilter] = useState<Battery | 'All'>('All');
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [customLogo, setCustomLogoState] = useState<string | null>(() => {
+    return localStorage.getItem(STORAGE_KEYS.LOGO);
+  });
   const [notification, setNotification] = useState<string | null>(null);
+
+  // Modals
+  const [dailyParadeModalOpen, setDailyParadeModalOpen] = useState<boolean>(false);
+  const [outOfUnitModalOpen, setOutOfUnitModalOpen] = useState<boolean>(false);
+  const [activeOutOfUnitCategory, setActiveOutOfUnitCategory] = useState<OutOfUnitCategory>('Msn');
+
+  const setCustomLogo = (logo: string | null) => {
+    setCustomLogoState(logo);
+    if (logo) {
+      localStorage.setItem(STORAGE_KEYS.LOGO, logo);
+      addAuditLog('Logo Updated (Admin)', 'Admin updated unit heraldic logo', 'SECURITY');
+    } else {
+      localStorage.removeItem(STORAGE_KEYS.LOGO);
+      addAuditLog('Logo Reset (Admin)', 'Admin restored default unit logo', 'SECURITY');
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.USERS_LIST, JSON.stringify(usersList));
@@ -118,6 +193,10 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEYS.LOGS, JSON.stringify(auditLogs));
   }, [auditLogs]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEYS.PARADE_POINTS, JSON.stringify(dailyParadePoints));
+  }, [dailyParadePoints]);
 
   const showNotification = (msg: string) => {
     setNotification(msg);
@@ -147,9 +226,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const switchRole = (role: Role, battery?: Battery) => {
     const matchingUser = usersList.find(u => u.role === role) || INITIAL_USERS.find(u => u.role === role);
     if (matchingUser) {
+      let defaultBty: Battery | undefined = battery || matchingUser.assignedBattery;
+      if (!defaultBty) {
+        if (role === 'P BSM') defaultBty = 'P Bty';
+        else if (role === 'Q BSM') defaultBty = 'Q Bty';
+        else if (role === 'R BSM') defaultBty = 'R Bty';
+        else if (role === 'HQ BSM') defaultBty = 'HQ Bty';
+      }
       const updatedUser: UserAccount = {
         ...matchingUser,
-        assignedBattery: battery || matchingUser.assignedBattery || (role === 'BSM' ? 'P Bty' : undefined),
+        assignedBattery: defaultBty,
       };
       setCurrentUserState(updatedUser);
       showNotification(`Active Role changed to ${role}${updatedUser.assignedBattery ? ` (${updatedUser.assignedBattery})` : ''}`);
@@ -200,15 +286,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const addPersonnel = (person: Omit<Personnel, 'id'>) => {
-    if (currentUser.role !== 'RSM') {
-      showNotification('Access Denied: Only Regimental Sergeant Major (RSM) has the authority to enlist soldiers.');
-      return;
-    }
     const newId = (personnelList.length + 1).toString();
     const newPerson: Personnel = { ...person, id: newId };
     setPersonnelList(prev => [newPerson, ...prev]);
-    showNotification(`Soldier ${newPerson.rk} ${newPerson.name} (${newPerson.snkNo}) enlisted by RSM`);
-    addAuditLog('Personnel Enlisted (RSM)', `RSM enlisted ${newPerson.rk} ${newPerson.name} (${newPerson.snkNo}) to ${newPerson.battery}`, 'PERSONNEL');
+    showNotification(`Soldier ${newPerson.rk} ${newPerson.name} (${newPerson.snkNo}) enlisted successfully.`);
+    addAuditLog('Personnel Enlisted', `${currentUser.role} enlisted ${newPerson.rk} ${newPerson.name} (${newPerson.snkNo}) to ${newPerson.battery}`, 'PERSONNEL');
   };
 
   const updatePersonnel = (id: string, updated: Partial<Personnel>) => {
@@ -238,7 +320,12 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPersonnelList(prev =>
       prev.map(p => {
         if (p.id === id) {
-          return { ...p, status, statusDetails: statusDetails ?? (status === 'Present' ? undefined : p.statusDetails) };
+          return {
+            ...p,
+            status,
+            statusDetails: statusDetails ?? (status === 'Present' ? undefined : p.statusDetails),
+            outOfUnitCategory: status === 'Present' ? undefined : p.outOfUnitCategory,
+          };
         }
         return p;
       })
@@ -254,13 +341,174 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setPersonnelList(prev =>
       prev.map(p => {
         if (ids.includes(p.id)) {
-          return { ...p, status, statusDetails: statusDetails ?? (status === 'Present' ? undefined : p.statusDetails) };
+          return {
+            ...p,
+            status,
+            statusDetails: statusDetails ?? (status === 'Present' ? undefined : p.statusDetails),
+            outOfUnitCategory: status === 'Present' ? undefined : p.outOfUnitCategory,
+          };
         }
         return p;
       })
     );
     showNotification(`Updated ${ids.length} soldiers to ${status}`);
     addAuditLog('Batch Status Update', `Updated ${ids.length} records to ${status}`, 'PARADE_STATE');
+  };
+
+  // Out Of Unit Handlers
+  const assignOutOfUnit = (
+    personnelId: string,
+    category: OutOfUnitCategory,
+    details: {
+      location?: string;
+      startDate?: string;
+      endDate?: string;
+      authority?: string;
+      remarks?: string;
+    }
+  ) => {
+    let paradeStatus: ParadeStatus = 'Temp Duty';
+    if (category === 'CMH') paradeStatus = 'CMH/Sick';
+    else if (category === 'P/Lve' || category === 'C/Lve') paradeStatus = 'Leave';
+    else if (category === 'Course') paradeStatus = 'Course/Trg';
+    else if (category === 'Att') paradeStatus = 'Attached Out';
+    else paradeStatus = 'Temp Duty';
+
+    setPersonnelList(prev =>
+      prev.map(p => {
+        if (p.id === personnelId) {
+          return {
+            ...p,
+            status: paradeStatus,
+            outOfUnitCategory: category,
+            outOfUnitLocation: details.location,
+            outOfUnitStartDate: details.startDate,
+            outOfUnitEndDate: details.endDate,
+            outOfUnitAuthority: details.authority,
+            outOfUnitRemarks: details.remarks,
+            statusDetails: `${category} - ${details.location || details.remarks || 'Out of Unit'}`,
+          };
+        }
+        return p;
+      })
+    );
+
+    const person = personnelList.find(p => p.id === personnelId);
+    showNotification(`Assigned ${person?.rk} ${person?.name} to [${category}] (${details.location || 'Out of Unit'})`);
+    addAuditLog('Out Of Unit Assignment', `Assigned ${person?.rk} ${person?.name} (${person?.battery}) to ${category}: ${details.location || ''}`, 'PARADE_STATE');
+  };
+
+  const cancelOutOfUnit = (personnelId: string) => {
+    setPersonnelList(prev =>
+      prev.map(p => {
+        if (p.id === personnelId) {
+          return {
+            ...p,
+            status: 'Present',
+            outOfUnitCategory: undefined,
+            outOfUnitLocation: undefined,
+            outOfUnitStartDate: undefined,
+            outOfUnitEndDate: undefined,
+            outOfUnitAuthority: undefined,
+            outOfUnitRemarks: undefined,
+            statusDetails: undefined,
+          };
+        }
+        return p;
+      })
+    );
+
+    const person = personnelList.find(p => p.id === personnelId);
+    showNotification(`Cancelled Out-of-Unit status for ${person?.rk} ${person?.name} - Returned to Unit Present.`);
+    addAuditLog('Out Of Unit Cancelled', `Returned ${person?.rk} ${person?.name} (${person?.battery}) to Present status in Unit`, 'PARADE_STATE');
+  };
+
+  // Daily Parade State Management Handlers
+  const updateParadePointCount = (pointId: string, battery: Battery, counts: ParadePointCount) => {
+    setDailyParadePoints(prev =>
+      prev.map(pt => {
+        if (pt.id === pointId) {
+          return {
+            ...pt,
+            counts: {
+              ...pt.counts,
+              [battery]: counts,
+            },
+          };
+        }
+        return pt;
+      })
+    );
+  };
+
+  const togglePointForBattery = (pointId: string, battery: Battery, enabled: boolean) => {
+    setDailyParadePoints(prev =>
+      prev.map(pt => {
+        if (pt.id === pointId) {
+          const current = pt.enabledBatteries || ['HQ Bty', 'P Bty', 'Q Bty', 'R Bty'];
+          const updated = enabled
+            ? Array.from(new Set([...current, battery]))
+            : current.filter(b => b !== battery);
+          return {
+            ...pt,
+            enabledBatteries: updated,
+          };
+        }
+        return pt;
+      })
+    );
+    showNotification(`Updated parade point visibility for ${battery}`);
+  };
+
+  const setRsmPointSuggestion = (pointId: string, suggestion: Partial<ParadePointCount>) => {
+    setDailyParadePoints(prev =>
+      prev.map(pt => {
+        if (pt.id === pointId) {
+          return {
+            ...pt,
+            rsmSuggested: { ...pt.rsmSuggested, ...suggestion },
+          };
+        }
+        return pt;
+      })
+    );
+    showNotification(`RSM point suggestion updated.`);
+  };
+
+  const addDailyParadePoint = (name: string, enabledBatteries?: Battery[], initialCounts?: ParadePointCount) => {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+    const newId = 'pt-' + Date.now();
+    const defaultCount = initialCounts || { offr: 0, jco: 0, or: 0 };
+    const newPoint: DailyParadePoint = {
+      id: newId,
+      name: trimmed,
+      order: dailyParadePoints.length + 1,
+      isActive: true,
+      enabledBatteries: enabledBatteries || ['HQ Bty', 'P Bty', 'Q Bty', 'R Bty'],
+      counts: {
+        'HQ Bty': { ...defaultCount },
+        'P Bty': { ...defaultCount },
+        'Q Bty': { ...defaultCount },
+        'R Bty': { ...defaultCount },
+      },
+    };
+    setDailyParadePoints(prev => [...prev, newPoint]);
+    showNotification(`Added new Daily Parade point: "${trimmed}"`);
+    addAuditLog('Parade Point Added', `Added parade duty point "${trimmed}"`, 'PARADE_STATE');
+  };
+
+  const deleteDailyParadePoint = (pointId: string) => {
+    const target = dailyParadePoints.find(p => p.id === pointId);
+    setDailyParadePoints(prev => prev.filter(p => p.id !== pointId));
+    showNotification(`Parade point "${target?.name}" removed.`);
+    addAuditLog('Parade Point Removed', `Removed point "${target?.name}"`, 'PARADE_STATE');
+  };
+
+  const toggleDailyParadePointActive = (pointId: string, active: boolean) => {
+    setDailyParadePoints(prev =>
+      prev.map(p => (p.id === pointId ? { ...p, isActive: active } : p))
+    );
   };
 
   const addDutyAssignment = (assignment: Omit<DutyAssignment, 'id'>) => {
@@ -360,8 +608,28 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
         setSelectedBatteryFilter,
         searchQuery,
         setSearchQuery,
+        customLogo,
+        setCustomLogo,
         notification,
         showNotification,
+
+        dailyParadePoints,
+        updateParadePointCount,
+        togglePointForBattery,
+        setRsmPointSuggestion,
+        addDailyParadePoint,
+        deleteDailyParadePoint,
+        toggleDailyParadePointActive,
+
+        assignOutOfUnit,
+        cancelOutOfUnit,
+
+        dailyParadeModalOpen,
+        setDailyParadeModalOpen,
+        outOfUnitModalOpen,
+        setOutOfUnitModalOpen,
+        activeOutOfUnitCategory,
+        setActiveOutOfUnitCategory,
       }}
     >
       {children}
@@ -376,3 +644,4 @@ export const useApp = () => {
   }
   return context;
 };
+

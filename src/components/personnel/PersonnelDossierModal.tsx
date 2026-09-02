@@ -205,7 +205,11 @@ export const PersonnelDossierModal: React.FC<PersonnelDossierModalProps> = ({
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-800">
                   <span className="text-slate-400">Trade Classification:</span>
-                  <span className="font-semibold text-slate-200">{person.trade}</span>
+                  <span className="font-semibold text-slate-200">
+                    {['Lt Col', 'Maj', 'Capt', 'Lt', '2Lt'].includes(person.rk)
+                      ? 'None (Commissioned Officer - No Trade)'
+                      : (person.trade && person.trade !== '-' ? person.trade : 'General Duty')}
+                  </span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-slate-800">
                   <span className="text-slate-400">Sub-Unit / Battery:</span>

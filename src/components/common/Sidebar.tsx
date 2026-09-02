@@ -1,5 +1,6 @@
 import React from 'react';
 import { useApp } from '../../context/AppContext';
+import { Role } from '../../types';
 import {
   LayoutDashboard,
   Users,
@@ -27,6 +28,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { activePage, setActivePage, currentUser, personnelList, getRegimentalTotals } = useApp();
   const totals = getRegimentalTotals();
 
+  const ALL_ROLES: Role[] = ['CO', 'Offr', 'RSM', 'P BSM', 'Q BSM', 'R BSM', 'HQ BSM', 'Admin'];
+
   const navigationItems = [
     {
       id: 'main_dashboard',
@@ -35,7 +38,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: LayoutDashboard,
       badge: `${totals.presentPercentage}%`,
       badgeColor: 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30',
-      allowedRoles: ['CO', 'Officers', 'Adjutant', 'RSM', 'BSM', 'Admin'],
+      allowedRoles: ALL_ROLES,
     },
     {
       id: 'master_personnel',
@@ -44,7 +47,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Users,
       badge: `${personnelList.length}`,
       badgeColor: 'bg-blue-500/20 text-blue-400 border border-blue-500/30',
-      allowedRoles: ['CO', 'Officers', 'Adjutant', 'RSM', 'BSM', 'Admin'],
+      allowedRoles: ALL_ROLES,
     },
     {
       id: 'battery_dashboard',
@@ -53,7 +56,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Building2,
       badge: currentUser.assignedBattery ? currentUser.assignedBattery : '4 Btys',
       badgeColor: 'bg-amber-500/20 text-amber-400 border border-amber-500/30',
-      allowedRoles: ['CO', 'Officers', 'Adjutant', 'RSM', 'BSM', 'Admin'],
+      allowedRoles: ALL_ROLES,
     },
     {
       id: 'parade_state',
@@ -62,7 +65,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: ClipboardList,
       badge: 'Live',
       badgeColor: 'bg-rose-500/20 text-rose-400 border border-rose-500/30',
-      allowedRoles: ['CO', 'Officers', 'Adjutant', 'RSM', 'BSM', 'Admin'],
+      allowedRoles: ALL_ROLES,
     },
     {
       id: 'rsm_dashboard',
@@ -71,7 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: ShieldCheck,
       badge: 'RSM',
       badgeColor: 'bg-purple-500/20 text-purple-400 border border-purple-500/30',
-      allowedRoles: ['CO', 'Adjutant', 'RSM', 'Admin'],
+      allowedRoles: ['CO', 'Offr', 'RSM', 'Admin'] as Role[],
     },
     {
       id: 'co_dashboard',
@@ -80,7 +83,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Eye,
       badge: 'CO View',
       badgeColor: 'bg-amber-400/20 text-amber-300 border border-amber-400/30',
-      allowedRoles: ['CO', 'Officers', 'Adjutant', 'RSM', 'BSM', 'Admin'],
+      allowedRoles: ALL_ROLES,
     },
     {
       id: 'admin_panel',
@@ -89,7 +92,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Settings,
       badge: 'Config',
       badgeColor: 'bg-slate-700 text-slate-300 border border-slate-600',
-      allowedRoles: ['Admin', 'Adjutant', 'CO'],
+      allowedRoles: ['Admin', 'CO'] as Role[],
     },
     {
       id: 'login',
@@ -98,7 +101,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: LogIn,
       badge: currentUser.role,
       badgeColor: 'bg-slate-800 text-slate-400 border border-slate-700',
-      allowedRoles: ['CO', 'Officers', 'Adjutant', 'RSM', 'BSM', 'Admin'],
+      allowedRoles: ALL_ROLES,
     },
   ];
 

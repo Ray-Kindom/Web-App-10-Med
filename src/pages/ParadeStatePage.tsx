@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../context/AppContext';
 import { ParadeStateSummaryGrid } from '../components/parade/ParadeStateSummaryGrid';
 import { PersonnelTable } from '../components/personnel/PersonnelTable';
+import { ParadeActionControls } from '../components/parade/ParadeActionControls';
 import { LeaveModal } from '../components/parade/LeaveModal';
 import { CourseModal } from '../components/parade/CourseModal';
 import { SickModal } from '../components/parade/SickModal';
@@ -229,6 +230,9 @@ export const ParadeStatePage: React.FC<ParadeStatePageProps> = ({
           </span>
         </button>
       </div>
+
+      {/* Parade Action Control Boxes: Updt Daily Parade State & Updt Out Of Unit */}
+      <ParadeActionControls />
 
       {/* Battery-Wise Matrix */}
       <ParadeStateSummaryGrid

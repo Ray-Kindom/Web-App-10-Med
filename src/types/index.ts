@@ -1,30 +1,104 @@
-export type Role = 'CO' | 'Officers' | 'Adjutant' | 'RSM' | 'BSM' | 'Admin';
+export type Role =
+  | 'CO'
+  | 'Offr'
+  | 'RSM'
+  | 'P BSM'
+  | 'Q BSM'
+  | 'R BSM'
+  | 'HQ BSM'
+  | 'Admin';
+
+export const OFFICER_RANKS: string[] = ['Lt Col', 'Maj', 'Capt', 'Lt', '2Lt'];
+
+export const isOfficerRank = (rank?: string): boolean => {
+  if (!rank) return false;
+  return OFFICER_RANKS.includes(rank);
+};
 
 export type Battery = 'HQ Bty' | 'P Bty' | 'Q Bty' | 'R Bty';
+
+export const ALL_BATTERIES: Battery[] = ['HQ Bty', 'P Bty', 'Q Bty', 'R Bty'];
 
 export type MilitaryRank =
   | 'Lt Col'
   | 'Maj'
   | 'Capt'
   | 'Lt'
+  | 'MWO'
   | 'SWO'
   | 'WO'
   | 'Sgt'
   | 'Cpl'
   | 'Lcpl'
-  | 'Snk'
-  | 'Gnr';
+  | 'Snk';
+
+export const ALL_RANKS: MilitaryRank[] = [
+  'Lt Col',
+  'Maj',
+  'Capt',
+  'Lt',
+  'MWO',
+  'SWO',
+  'WO',
+  'Sgt',
+  'Cpl',
+  'Lcpl',
+  'Snk',
+];
 
 export type Trade =
-  | 'TA' // Technical Assistant
-  | 'OCU' // Operational Control Unit / Gunner OCU
-  | 'DMT' // Driver Mechanical Transport
-  | 'Gnr' // Gunner
-  | 'Ck(U)' // Cook (Unit)
-  | 'Clerk'
-  | 'Tech'
-  | 'Rdr' // Radar
-  | 'Surv'; // Survey
+  | 'Gnr'
+  | 'TA'
+  | 'OCU'
+  | 'DMT'
+  | 'E&BR'
+  | 'Tailor'
+  | 'Ck(U)'
+  | 'Ck(M)'
+  | 'NC(E)'
+  | 'NC(U)'
+  | '-';
+
+export const ALL_TRADES: Trade[] = [
+  'Gnr',
+  'TA',
+  'OCU',
+  'DMT',
+  'E&BR',
+  'Tailor',
+  'Ck(U)',
+  'Ck(M)',
+  'NC(E)',
+  'NC(U)',
+];
+
+export type OutOfUnitCategory =
+  | 'ERE'
+  | 'Msn'
+  | 'Att'
+  | 'FDMN'
+  | 'CMH'
+  | 'Course'
+  | 'Comd'
+  | 'P/Lve'
+  | 'C/Lve';
+
+export const OUT_OF_UNIT_CATEGORIES: {
+  id: OutOfUnitCategory;
+  label: string;
+  badge: string;
+  description: string;
+}[] = [
+  { id: 'ERE', label: 'ERE', badge: 'Extra Regt', description: 'Extra Regimental Employment (DGFI, BGB, AHQ, Cantonment)' },
+  { id: 'Msn', label: 'Msn', badge: 'UN Mission', description: 'UN Peacekeeping Mission Deployment' },
+  { id: 'Att', label: 'Att', badge: 'Attachment', description: 'Temporary Attachment to other Formations' },
+  { id: 'FDMN', label: 'FDMN', badge: 'Field Duty', description: 'Field Duty & Field Maintenance Outstation' },
+  { id: 'CMH', label: 'CMH', badge: 'Hospital', description: 'Combined Military Hospital (Admission / Review)' },
+  { id: 'Course', label: 'Course', badge: 'Military Cadre', description: 'Cadres & Training Courses (AC&S, SI&T, etc.)' },
+  { id: 'Comd', label: 'Comd', badge: 'Command Task', description: 'Command & Special Formation Duties' },
+  { id: 'P/Lve', label: 'P/Lve', badge: 'Privilege Leave', description: 'Annual Privilege Leave' },
+  { id: 'C/Lve', label: 'C/Lve', badge: 'Casual Leave', description: 'Short Casual Leave / Emergency Leave' },
+];
 
 export type ParadeStatus =
   | 'Present'
@@ -39,6 +113,7 @@ export type ParadeStatus =
 export interface Personnel {
   id: string;
   snkNo: string;
+  batch?: string; // e.g. 88 Recruit Batch, 42 BMA, 2024 Batch
   rk: MilitaryRank | string;
   trade: Trade | string;
   name: string;
@@ -49,20 +124,29 @@ export interface Personnel {
   phone?: string;
   bloodGroup?: string;
   enlistmentDate?: string;
+  joiningDate?: string; // Joining Dt in unit
+  enlistmentSource?: 'Posted In from Other Unit' | 'Joined after Training' | 'Re-enlistment' | 'Direct Entry';
+  previousUnit?: string;
   medicalCategory?: 'AYE' | 'BEE' | 'CEE';
   currentDuty?: string;
   nokName?: string;
   nokContact?: string;
+  // Out of unit category assignment
+  outOfUnitCategory?: OutOfUnitCategory;
+  outOfUnitLocation?: string;
+  outOfUnitStartDate?: string;
+  outOfUnitEndDate?: string;
+  outOfUnitAuthority?: string;
+  outOfUnitRemarks?: string;
   // Extended state details
   leaveType?: 'P/Lve' | 'C/Lve';
   leaveFrom?: string;
   leaveTo?: string;
-  joiningDate?: string; // Kobe join korbe
   leaveAddress?: string;
-  courseName?: string; // Kon course e geche
+  courseName?: string;
   courseLocation?: string;
   courseFrom?: string;
-  courseTo?: string; // Kobe sesh
+  courseTo?: string;
   courseDuration?: string;
   sickType?: 'CMH' | 'Sic';
   hospitalName?: string;
@@ -74,6 +158,27 @@ export interface Personnel {
   comdFrom?: string;
   comdTo?: string;
   comdAuthority?: string;
+}
+
+export interface ParadePointCount {
+  offr: number;
+  jco: number;
+  or: number;
+}
+
+export interface DailyParadePoint {
+  id: string;
+  name: string;
+  order: number;
+  isActive: boolean;
+  enabledBatteries: Battery[]; // Which batteries have this row enabled
+  counts: {
+    'HQ Bty': ParadePointCount;
+    'P Bty': ParadePointCount;
+    'Q Bty': ParadePointCount;
+    'R Bty': ParadePointCount;
+  };
+  rsmSuggested?: Partial<ParadePointCount>;
 }
 
 export interface BatteryParadeSummary {

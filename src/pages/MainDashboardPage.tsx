@@ -344,39 +344,41 @@ export const MainDashboardPage: React.FC<MainDashboardPageProps> = ({
             </div>
           </div>
 
-          {/* Recent Parade Activity Logs */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-xl space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center gap-1.5">
-                <Clock className="w-3.5 h-3.5 text-blue-400" />
-                <span>Unit Activity & Audit Log</span>
-              </h3>
-              <button
-                onClick={() => setActivePage('admin_panel')}
-                className="text-[11px] text-rose-400 hover:underline"
-              >
-                View All
-              </button>
-            </div>
-
-            <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1 text-xs">
-              {auditLogs.slice(0, 4).map((log) => (
-                <div
-                  key={log.id}
-                  className="p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 space-y-1"
+          {/* Recent Parade Activity Logs (Admin Only) */}
+          {currentUser.role === 'Admin' && (
+            <div className="bg-slate-900 border border-slate-800 rounded-xl p-4 shadow-xl space-y-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400 font-mono flex items-center gap-1.5">
+                  <Clock className="w-3.5 h-3.5 text-blue-400" />
+                  <span>Unit Activity & Audit Log</span>
+                </h3>
+                <button
+                  onClick={() => setActivePage('admin_panel')}
+                  className="text-[11px] text-rose-400 hover:underline"
                 >
-                  <div className="flex items-center justify-between">
-                    <span className="font-bold text-white text-[11px]">{log.action}</span>
-                    <span className="text-[9px] font-mono text-slate-400">
-                      {log.timestamp.slice(11, 16)} HRS
-                    </span>
+                  View All
+                </button>
+              </div>
+
+              <div className="space-y-2.5 max-h-60 overflow-y-auto pr-1 text-xs">
+                {auditLogs.slice(0, 4).map((log) => (
+                  <div
+                    key={log.id}
+                    className="p-2.5 rounded-lg bg-slate-950 border border-slate-800/80 space-y-1"
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-white text-[11px]">{log.action}</span>
+                      <span className="text-[9px] font-mono text-slate-400">
+                        {log.timestamp.slice(11, 16)} HRS
+                      </span>
+                    </div>
+                    <p className="text-[11px] text-slate-400 line-clamp-2">{log.details}</p>
+                    <div className="text-[9px] text-rose-400 font-mono">By: {log.performedBy}</div>
                   </div>
-                  <p className="text-[11px] text-slate-400 line-clamp-2">{log.details}</p>
-                  <div className="text-[9px] text-rose-400 font-mono">By: {log.performedBy}</div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

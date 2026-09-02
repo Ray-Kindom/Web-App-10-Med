@@ -3,7 +3,7 @@ import { Personnel, UserAccount, BatteryParadeSummary, DutyAssignment, AuditLogI
 // Real Personnel parsed from 10 Med Regt nominal roll provided in unit document
 export const INITIAL_PERSONNEL: Personnel[] = [
   // Officers & JCOs
-  { id: '1', snkNo: '12145', rk: 'Lt', trade: 'Gnr', name: 'Rayahan Majumder', battery: 'HQ Bty', status: 'Present', bloodGroup: 'B+', medicalCategory: 'AYE' },
+  { id: '1', snkNo: '12145', rk: 'Lt', trade: '-', name: 'Rayahan Majumder', battery: 'HQ Bty', status: 'Present', bloodGroup: 'B+', medicalCategory: 'AYE' },
   { id: '2', snkNo: '52470', rk: 'SWO', trade: 'DMT', name: 'Nasir', battery: 'HQ Bty', status: 'Present', bloodGroup: 'O+', medicalCategory: 'AYE' },
   { id: '3', snkNo: '52741', rk: 'SWO', trade: 'OCU', name: 'Jafor', battery: 'P Bty', status: 'Present', bloodGroup: 'A+', medicalCategory: 'AYE' },
   { id: '4', snkNo: 'Noya-1', rk: 'WO', trade: 'Gnr', name: 'Hamid', battery: 'Q Bty', status: 'Present', bloodGroup: 'B+', medicalCategory: 'AYE' },
@@ -378,31 +378,18 @@ export const INITIAL_USERS: UserAccount[] = [
   },
   {
     id: 'u-2',
-    username: 'adjutant',
-    password: 'adjt123',
+    username: 'offr',
+    password: 'offr123',
     name: 'Capt Saifuddin Ahmed',
     snkNo: 'BA-9844',
     rank: 'Capt',
-    role: 'Adjutant',
-    accessLevel: 'Regiment Roll & Approval',
+    role: 'Offr',
+    accessLevel: 'Regimental Officer Access',
     assignedBatteries: ['HQ Bty', 'P Bty', 'Q Bty', 'R Bty'],
     lastLogin: 'Today, 07:45 hrs'
   },
   {
     id: 'u-3',
-    username: 'officer',
-    password: 'off123',
-    name: 'Lt Rayahan Majumder',
-    snkNo: '12145',
-    rank: 'Lt',
-    role: 'Officers',
-    accessLevel: 'Battery Officer Access',
-    assignedBattery: 'HQ Bty',
-    assignedBatteries: ['HQ Bty', 'P Bty'],
-    lastLogin: 'Today, 08:30 hrs'
-  },
-  {
-    id: 'u-4',
     username: 'rsm',
     password: 'rsm123',
     name: 'SWO Nasir',
@@ -414,20 +401,59 @@ export const INITIAL_USERS: UserAccount[] = [
     lastLogin: 'Today, 06:30 hrs'
   },
   {
-    id: 'u-5',
-    username: 'bsm_p',
+    id: 'u-4',
+    username: 'p_bsm',
     password: 'bsm123',
     name: 'SWO Jafor',
     snkNo: '52741',
     rank: 'SWO',
-    role: 'BSM',
-    accessLevel: 'Battery In-Charge',
+    role: 'P BSM',
+    accessLevel: 'P Battery In-Charge',
     assignedBattery: 'P Bty',
     assignedBatteries: ['P Bty'],
     lastLogin: 'Today, 06:45 hrs'
   },
   {
+    id: 'u-5',
+    username: 'q_bsm',
+    password: 'bsm123',
+    name: 'WO Hamid',
+    snkNo: 'Noya-1',
+    rank: 'WO',
+    role: 'Q BSM',
+    accessLevel: 'Q Battery In-Charge',
+    assignedBattery: 'Q Bty',
+    assignedBatteries: ['Q Bty'],
+    lastLogin: 'Today, 06:50 hrs'
+  },
+  {
     id: 'u-6',
+    username: 'r_bsm',
+    password: 'bsm123',
+    name: 'WO Aminul',
+    snkNo: 'Noya-2',
+    rank: 'WO',
+    role: 'R BSM',
+    accessLevel: 'R Battery In-Charge',
+    assignedBattery: 'R Bty',
+    assignedBatteries: ['R Bty'],
+    lastLogin: 'Today, 06:55 hrs'
+  },
+  {
+    id: 'u-7',
+    username: 'hq_bsm',
+    password: 'bsm123',
+    name: 'SWO M. Rahman',
+    snkNo: '52890',
+    rank: 'SWO',
+    role: 'HQ BSM',
+    accessLevel: 'HQ Battery In-Charge',
+    assignedBattery: 'HQ Bty',
+    assignedBatteries: ['HQ Bty'],
+    lastLogin: 'Today, 07:00 hrs'
+  },
+  {
+    id: 'u-8',
     username: 'admin',
     password: 'admin123',
     name: 'Regimental IT Administrator',
@@ -482,8 +508,8 @@ export const INITIAL_AUDIT_LOGS: AuditLogItem[] = [
     id: 'log-1',
     timestamp: '2026-09-02 07:15:00',
     action: 'Morning Parade State Submitted',
-    performedBy: 'SWO Jafor (BSM)',
-    role: 'BSM',
+    performedBy: 'SWO Jafor (P BSM)',
+    role: 'P BSM',
     details: 'P Battery morning roll submitted with 35 posted, 32 present, 1 leave, 2 on duty',
     category: 'PARADE_STATE'
   },
@@ -499,18 +525,18 @@ export const INITIAL_AUDIT_LOGS: AuditLogItem[] = [
   {
     id: 'log-3',
     timestamp: '2026-09-02 08:00:15',
-    action: 'Regimental State Approved',
-    performedBy: 'Capt Saifuddin Ahmed (Adjt)',
-    role: 'Adjutant',
-    details: 'Daily Morning Parade State authorized and forwarded for CO perusal',
+    action: 'Regimental State Reviewed',
+    performedBy: 'Capt Saifuddin Ahmed (Offr)',
+    role: 'Offr',
+    details: 'Daily Morning Parade State reviewed and verified for CO perusal',
     category: 'PARADE_STATE'
   },
   {
     id: 'log-4',
     timestamp: '2026-09-02 08:20:10',
     action: 'Medical Status Updated',
-    performedBy: 'Capt Saifuddin Ahmed (Adjt)',
-    role: 'Adjutant',
+    performedBy: 'Capt Saifuddin Ahmed (Offr)',
+    role: 'Offr',
     details: 'Updated Lcpl Md. Iliyas Ahsan (1232718) to CMH Savar admission',
     category: 'PERSONNEL'
   }

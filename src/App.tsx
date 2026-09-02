@@ -5,6 +5,8 @@ import { Sidebar } from './components/common/Sidebar';
 import { PersonnelDossierModal } from './components/personnel/PersonnelDossierModal';
 import { AddPersonnelModal } from './components/personnel/AddPersonnelModal';
 import { ParadeStatePrintSheet } from './components/parade/ParadeStatePrintSheet';
+import { DailyParadeStateModal } from './components/parade/DailyParadeStateModal';
+import { OutOfUnitManagerModal } from './components/parade/OutOfUnitManagerModal';
 import { Personnel } from './types';
 
 // Pages
@@ -18,7 +20,14 @@ import { CoDashboardPage } from './pages/CoDashboardPage';
 import { AdminPanelPage } from './pages/AdminPanelPage';
 
 const AppContent: React.FC = () => {
-  const { activePage } = useApp();
+  const {
+    activePage,
+    dailyParadeModalOpen,
+    setDailyParadeModalOpen,
+    outOfUnitModalOpen,
+    setOutOfUnitModalOpen,
+    activeOutOfUnitCategory,
+  } = useApp();
   const [isMobileNavOpen, setIsMobileNavOpen] = useState<boolean>(false);
 
   // Modal States
@@ -132,7 +141,7 @@ const AppContent: React.FC = () => {
         }}
       />
 
-      {/* Global Add Soldier Modal */}
+      {/* Global Add / Enlist Soldier Modal */}
       <AddPersonnelModal
         isOpen={isAddModalOpen}
         onClose={() => setIsAddModalOpen(false)}
@@ -142,6 +151,19 @@ const AppContent: React.FC = () => {
       <ParadeStatePrintSheet
         isOpen={isPrintModalOpen}
         onClose={() => setIsPrintModalOpen(false)}
+      />
+
+      {/* Updt Daily Parade State Modal (29 Points) */}
+      <DailyParadeStateModal
+        isOpen={dailyParadeModalOpen}
+        onClose={() => setDailyParadeModalOpen(false)}
+      />
+
+      {/* Updt Out Of Unit Modal (ERE, Msn, Att, FDMN, CMH, Course, Comd, Leaves) */}
+      <OutOfUnitManagerModal
+        isOpen={outOfUnitModalOpen}
+        onClose={() => setOutOfUnitModalOpen(false)}
+        defaultCategory={activeOutOfUnitCategory}
       />
     </div>
   );
